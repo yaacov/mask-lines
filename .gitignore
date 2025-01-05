@@ -1,0 +1,57 @@
+# =====================
+# General OS-related
+# =====================
+.DS_Store
+Thumbs.db
+
+# =====================
+# Python Bytecode
+# =====================
+__pycache__/
+*.py[cod]
+*$py.class
+
+# =====================
+# Virtual Environments
+# =====================
+venv/
+env/
+.venv/
+.ipynb_checkpoints/
+
+# =====================
+# Distribution / Packaging
+# =====================
+build/
+dist/
+*.egg-info/
+
+# =====================
+# Logs / Temp Files
+# =====================
+*.log
+*.tmp
+
+# =====================
+# Jupyter Notebook Checkpoints
+# =====================
+.ipynb_checkpoints
+
+# =====================
+# Data / Large Files
+# =====================
+data/raw/
+data/processed/
+# !data/processed/small_example/
+
+# =====================
+# Model Checkpoints
+# =====================
+models/*.pth
+models/*.pt
+
+# =====================
+# Editor or IDE Specific
+# =====================
+.vscode/
+.idea/

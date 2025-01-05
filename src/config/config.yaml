@@ -1,0 +1,13 @@
+train:
+  epochs: 10
+  batch_size: 4
+  learning_rate: 1e-4
+  patch_size: 256
+  step: 256
+
+paths:
+  train_input_dir: "data/raw/train/inputs"
+  train_target_dir: "data/raw/train/targets"
+  val_input_dir: "data/raw/val/inputs"
+  val_target_dir: "data/raw/val/targets"
+  model_save_path: "models/ortho_lines.pth"

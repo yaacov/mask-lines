@@ -1,0 +1,14 @@
+# Core Libraries
+numpy==1.23.5
+scikit-image==0.20.0
+pyyaml==6.0
+
+# PyTorch & Related
+torch==2.0.1
+torchvision==0.15.2
+
+# Testing
+pytest==7.3.0
+
+# Code Formatting & Linting
+black==23.3.0
