@@ -2,7 +2,7 @@
 
 ENV_NAME = deeper_unet_env
 
-.PHONY: help install create_env activate_env train test inference clean format lint
+.PHONY: help install create_env activate_env train test inference clean format lint gui
 
 help:
 	@echo "Available make targets:"
@@ -13,6 +13,7 @@ help:
 	@echo "  format         Format Python code in src/ and tests/ using Black"
 	@echo "  lint           Check Python code formatting with Black (no changes applied)"
 	@echo "  clean          Remove __pycache__ folders"
+	@echo "  gui            Run the mask GUI editor (src/editor/editor.py)"
 
 install:
 	pip install -r requirements.txt
@@ -35,3 +36,6 @@ format:
 
 lint:
 	black --check src/ tests/
+
+gui:
+	PYTHONPATH=. python src/editor/editor.py

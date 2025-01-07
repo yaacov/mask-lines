@@ -12,3 +12,6 @@ pytest==7.3.0
 
 # Code Formatting & Linting
 black==23.3.0
+
+# GUI
+PyQt5
