@@ -50,6 +50,7 @@ results/
 # =====================
 models/*.pth
 models/*.pt
+#!models/ortho_lines.pth
 
 # =====================
 # Editor or IDE Specific
