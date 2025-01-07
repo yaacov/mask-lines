@@ -19,6 +19,12 @@ def parse_args():
         default="src/config/config.yaml",
         help="Path to config file",
     )
+    parser.add_argument(
+        "--resume",
+        action="store_true",
+        default=False,
+        help="Resume training from saved model specified in config",
+    )
     return parser.parse_args()
 
 
@@ -79,6 +85,14 @@ def main():
     model = OrthoLinesUNet(
         in_channels=3, out_channels=3, base_features=64, num_convs_per_block=3
     )
+
+    # Load existing model if resume flag is set
+    if args.resume:
+        if not os.path.exists(model_save_path):
+            raise ValueError(f"Resume model path not found: {model_save_path}")
+        print(f"Loading model from {model_save_path}")
+        model.load_state_dict(torch.load(model_save_path))
+
     model = model.to(device)
 
     # Loss, Optimizer

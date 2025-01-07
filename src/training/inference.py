@@ -8,16 +8,28 @@ from models.ortho_lines_unet import OrthoLinesUNet
 
 def split_into_patches(img, patch_size=256, step=256):
     """
-    Splits an image (H x W x C) into patches.
+    Splits an image (H x W x C) into patches, ensuring coverage of edges.
     """
     patches = []
     coords = []
     H, W, C = img.shape
-    for y in range(0, H - patch_size + 1, step):
-        for x in range(0, W - patch_size + 1, step):
+
+    # Calculate the range for both dimensions to include last row/column
+    y_positions = list(range(0, H - patch_size + 1, step))
+    x_positions = list(range(0, W - patch_size + 1, step))
+
+    # Add final positions if they're not already included
+    if H > patch_size and y_positions[-1] + patch_size < H:
+        y_positions.append(H - patch_size)
+    if W > patch_size and x_positions[-1] + patch_size < W:
+        x_positions.append(W - patch_size)
+
+    for y in y_positions:
+        for x in x_positions:
             patch = img[y : y + patch_size, x : x + patch_size, :]
             patches.append(patch)
             coords.append((y, x))
+
     return patches, coords, H, W
 
 
@@ -52,7 +64,7 @@ def main():
         "--input", type=str, required=True, help="Path to input image or directory"
     )
     parser.add_argument(
-        "--output", type=str, required=True, help="Path to output directory or file"
+        "--output", type=str, required=True, help="Path to output directory"
     )
     parser.add_argument(
         "--model",
@@ -71,47 +83,67 @@ def main():
     model = OrthoLinesUNet(
         in_channels=3, out_channels=3, base_features=64, num_convs_per_block=3
     )
-    model.load_state_dict(torch.load(args.model, map_location=device, weights_only=True))
+    model.load_state_dict(
+        torch.load(args.model, map_location=device, weights_only=True)
+    )
     model.to(device)
     model.eval()
 
+    # Create output subdirectories
+    for subdir in ["inputs", "target", "overlay"]:
+        os.makedirs(os.path.join(args.output, subdir), exist_ok=True)
+
     # Check if input is a single file or directory
     if os.path.isdir(args.input):
-        # Process each file in the directory
         fnames = [
             f
             for f in os.listdir(args.input)
             if f.lower().endswith((".png", ".jpg", ".jpeg"))
         ]
-        os.makedirs(args.output, exist_ok=True)
 
         for fname in fnames:
             img_path = os.path.join(args.input, fname)
-            out_path = os.path.join(args.output, fname)
+            out_paths = {
+                "input": os.path.join(args.output, "inputs", fname),
+                "target": os.path.join(args.output, "target", fname),
+                "overlay": os.path.join(args.output, "overlay", fname),
+            }
             infer_and_save(
-                img_path, out_path, model, device, args.patch_size, args.step
+                img_path, out_paths, model, device, args.patch_size, args.step
             )
     else:
-        # Single file
-        os.makedirs(os.path.dirname(args.output), exist_ok=True)
-        infer_and_save(
-            args.input, args.output, model, device, args.patch_size, args.step
-        )
+        fname = os.path.basename(args.input)
+        out_paths = {
+            "input": os.path.join(args.output, "inputs", fname),
+            "target": os.path.join(args.output, "target", fname),
+            "overlay": os.path.join(args.output, "overlay", fname),
+        }
+        infer_and_save(args.input, out_paths, model, device, args.patch_size, args.step)
 
 
-def infer_and_save(img_path, out_path, model, device, patch_size, step):
+def create_overlay(original, prediction, alpha=0.5):
     """
-    Loads image, splits into patches, runs inference, stitches, saves.
+    Create an overlay of the prediction on the original image.
+    """
+    return original * (1 - alpha) + prediction * alpha
+
+
+def infer_and_save(img_path, out_paths, model, device, patch_size, step):
+    """
+    Loads image, splits into patches, runs inference, stitches, saves to multiple directories.
     """
     # Load image and convert to RGB if necessary
     img = io.imread(img_path)
-    
+
     # Handle different channel configurations
     if img.ndim == 2:  # Grayscale
         img = np.stack([img] * 3, axis=-1)
     elif img.shape[-1] == 4:  # RGBA
         img = img[..., :3]  # Keep only RGB channels
-    
+
+    # Save input image
+    io.imsave(out_paths["input"], img)
+
     # Normalize to [0, 1]
     img = img.astype(np.float32) / 255.0
 
@@ -120,7 +152,6 @@ def infer_and_save(img_path, out_path, model, device, patch_size, step):
 
     with torch.no_grad():
         for patch in patches:
-            # (H, W, C) => (1, C, H, W)
             patch_tensor = (
                 torch.from_numpy(patch.transpose(2, 0, 1)).unsqueeze(0).to(device)
             )
@@ -132,8 +163,17 @@ def infer_and_save(img_path, out_path, model, device, patch_size, step):
         patch_preds, coords, H, W, patch_size=patch_size, step=step
     )
     out_img = np.clip(out_img, 0, 1)
-    io.imsave(out_path, (out_img * 255).astype(np.uint8))
-    print(f"Saved output to {out_path}")
+
+    # Save target image
+    target_img = (out_img * 255).astype(np.uint8)
+    io.imsave(out_paths["target"], target_img)
+
+    # Create and save overlay
+    overlay_img = create_overlay(img, out_img)
+    overlay_img = (overlay_img * 255).astype(np.uint8)
+    io.imsave(out_paths["overlay"], overlay_img)
+
+    print(f"Saved results to {os.path.dirname(out_paths['input'])}")
 
 
 if __name__ == "__main__":

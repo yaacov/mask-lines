@@ -65,9 +65,8 @@ class PatchImageDataset(Dataset):
                 background.paste(img.convert("L"), mask=img.split()[3])
                 return background
             else:
-                background = Image.new("RGB", img.size, (255, 255, 255))
-                background.paste(img, mask=img.split()[3])
-                return background
+                img_rgb = self._rgba_to_rgb_with_black(img)
+                return img_rgb
         elif img.mode != "RGB" and not self.keep_grayscale:
             return img.convert("RGB")
         return img
@@ -86,6 +85,7 @@ class PatchImageDataset(Dataset):
 
         # Load target image patch
         target_path = os.path.join(self.target_dir, img_file)
+        target_path = self._get_target_path(target_path)
         target_img = Image.open(target_path)
         target_img = self._ensure_rgb(target_img)
         target_patch = target_img.crop((x, y, x + self.patch_size, y + self.patch_size))
@@ -103,3 +103,38 @@ class PatchImageDataset(Dataset):
             target_tensor = target_tensor.permute(2, 0, 1)
 
         return input_tensor, target_tensor
+
+    def _get_target_path(self, target_path):
+        """Find target path, fallback to .png extension if original doesn't exist."""
+        import os
+        from pathlib import Path
+
+        # Get original path components
+        path = Path(target_path)
+        target_dir = str(path.parent)
+        filename = path.stem
+
+        # Try original path first
+        if os.path.exists(target_path):
+            return target_path
+
+        # Try .png alternative
+        png_path = os.path.join(target_dir, f"{filename}.png")
+        if os.path.exists(png_path):
+            return png_path
+
+        # Return original if neither exists
+        return target_path
+
+    def _rgba_to_rgb_with_black(self, rgba_image):
+        """Convert RGBA to RGB with black background where alpha=0"""
+        # Split into channels
+        r, g, b, a = rgba_image.split()
+
+        # Create black background
+        black_background = Image.new("RGB", rgba_image.size, (0, 0, 0))
+
+        # Convert to RGB while preserving alpha blend with black
+        rgb_image = Image.composite(rgba_image.convert("RGB"), black_background, a)
+
+        return rgb_image

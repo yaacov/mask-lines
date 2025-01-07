@@ -39,7 +39,7 @@ make inference
 ```
 This runs:
 ```bash
-python src/training/inference.py --input data/raw/test --output results/ \
+python src/training/inference.py --input data/processed/test --output results/ \
     --model models/ortho_lines.pth --patch_size 256 --step 256
 ```
 You can pass different --input / --output paths as needed.

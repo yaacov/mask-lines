@@ -42,6 +42,7 @@ dist/
 # =====================
 data/raw/
 data/processed/
+results/
 # !data/processed/small_example/
 
 # =====================

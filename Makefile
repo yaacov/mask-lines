@@ -24,7 +24,7 @@ test:
 	PYTHONPATH=. pytest tests/
 
 inference:
-	PYTHONPATH=. python src/training/inference.py --input data/raw/test --output results/ --model models/ortho_lines.pth --patch_size 256 --step 256
+	PYTHONPATH=. python src/training/inference.py --input data/processed/test --output results/ --model models/ortho_lines.pth --patch_size 256 --step 256
 
 clean:
 	@find . -type d -name "__pycache__" -exec rm -rf {} +
