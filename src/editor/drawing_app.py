@@ -144,15 +144,15 @@ class DrawingApp(QMainWindow):
         # Connect sidebar clicks
         self.sidebar.itemClicked.connect(self.load_background_from_list)
 
-        # Create input and target directories if they don't exist
+        # Create input and targets directories if they don't exist
         if not os.path.exists(self.input_dir):
             os.makedirs(self.input_dir)
 
         inputs_dir = os.path.join(self.input_dir, "inputs")
-        targets_dir = os.path.join(self.input_dir, "target")  # Add target directory
+        targets_dir = os.path.join(self.input_dir, "targets")  # Add targets directory
         if not os.path.exists(inputs_dir):
             os.makedirs(inputs_dir)
-        if not os.path.exists(targets_dir):  # Create target directory
+        if not os.path.exists(targets_dir):  # Create targets directory
             os.makedirs(targets_dir)
 
         # Replace existing undo setup with new UndoManager
@@ -268,7 +268,7 @@ class DrawingApp(QMainWindow):
                 if hasattr(self, "current_filename")
                 else "mask-out.png"
             )
-            file_path = os.path.join(self.input_dir, "target", save_filename)
+            file_path = os.path.join(self.input_dir, "targets", save_filename)
 
             # Convert to yellow and black based on alpha channel
             image_array = ImageUtils.qimage_to_numpy(self.image)
@@ -400,7 +400,7 @@ class DrawingApp(QMainWindow):
 
         # Ensure both directories exist
         inputs_dir = os.path.join(self.input_dir, "inputs")
-        targets_dir = os.path.join(self.input_dir, "target")
+        targets_dir = os.path.join(self.input_dir, "targets")
 
         if not os.path.exists(self.input_dir):
             os.makedirs(self.input_dir)
@@ -426,12 +426,12 @@ class DrawingApp(QMainWindow):
 
         self.current_filename = item.text()  # Store the filename
         bg_filepath = os.path.join(self.input_dir, "inputs", self.current_filename)
-        drawing_filepath = os.path.join(self.input_dir, "target", self.current_filename)
+        drawing_filepath = os.path.join(self.input_dir, "targets", self.current_filename)
 
         # Load background using helper method
         self.load_background_from_path(bg_filepath)
 
-        # Load target drawing if exists, otherwise create blank transparent layer
+        # Load targets drawing if exists, otherwise create blank transparent layer
         if os.path.exists(drawing_filepath):
             self.load_image_from_path(drawing_filepath)
         else:
