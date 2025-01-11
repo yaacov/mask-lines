@@ -157,10 +157,17 @@ class UIComponents:
         self.color_button = QPushButton()
         self.color_button.setFixedSize(32, 32)
         self.toolbar.addWidget(self.color_button)
-        self.update_color_button(QColor(255, 255, 0))
+        # Color will be set when tool is selected
 
     def update_color_button(self, color):
         """Update color button appearance"""
         self.color_button.setStyleSheet(
             f"background-color: {color.name()}; border: 2px solid #666666;"
         )
+
+    def update_tool_specific_controls(self, tool):
+        """Update controls based on tool settings"""
+        settings = self.main_window.state.current_tool_settings
+        self.update_size_controls(settings["size"])
+        self.update_color_button(settings["color"])
+        self.color_button.setEnabled(tool != "Eraser")  # Disable color picker for eraser

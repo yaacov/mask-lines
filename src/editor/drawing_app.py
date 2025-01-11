@@ -12,11 +12,16 @@ from .undo_manager import UndoManager
 from .image_utils import ImageUtils
 from .ui_components import UIComponents
 from .image_processor import ImageProcessor
+from .app_state import AppState
 
 
 class DrawingApp(QMainWindow):
     def __init__(self, input_dir="./results"):
         super().__init__()
+        # Initialize state manager
+        self.state = AppState()
+        # Connect state signals
+        self.connect_state_signals()
         self.init_window()
         self.init_attributes(input_dir)
         self.init_ui_components()
@@ -134,6 +139,11 @@ class DrawingApp(QMainWindow):
         self.ui.size_slider.valueChanged.connect(self.ui.update_size_controls)
         self.ui.size_spinbox.valueChanged.connect(self.ui.update_size_controls)
 
+    def connect_state_signals(self):
+        """Connect state change signals to UI updates"""
+        self.state.image_changed.connect(self.update_scene)
+        self.state.unsaved_changes.connect(self.update_window_title)
+
     # ---- File Operations ----
 
     def load_images_list(self):
@@ -248,9 +258,26 @@ class DrawingApp(QMainWindow):
 
     def select_tool(self, tool):
         """Select and configure the current drawing tool"""
+        # Save current tool settings before switching
+        if self.current_tool:
+            self.state.save_tool_state(self.current_tool, {
+                "size": self.graphics_view.pen_size,
+                "color": self.graphics_view.pen_color
+            })
+        
         self.graphics_view.clear_temp_line()
         self.current_tool = tool
         self.graphics_view.current_tool = tool
+
+        # Restore saved settings for the selected tool
+        tool_settings = self.state.restore_tool_state(tool)
+        if tool_settings:
+            self.graphics_view.pen_size = tool_settings["size"]
+            self.graphics_view.pen_color = tool_settings["color"]
+            
+            # Update UI with tool settings
+            self.ui.update_size_controls(tool_settings["size"])
+            self.ui.update_color_button(tool_settings["color"])
 
         # Update action states
         actions = {
@@ -293,10 +320,12 @@ class DrawingApp(QMainWindow):
 
     def choose_color(self):
         """Open color picker dialog"""
-        color = QColorDialog.getColor()
-        if color.isValid():
-            self.ui.update_color_button(color)
-            self.graphics_view.pen_color = color
+        if self.current_tool != "Eraser":  # Prevent changing eraser color
+            color = QColorDialog.getColor()
+            if color.isValid():
+                self.state.update_tool_setting(self.current_tool, "color", color)
+                self.ui.update_color_button(color)
+                self.graphics_view.pen_color = color
 
     def update_color_button(self, color):
         """Deprecated: Use ui.update_color_button instead"""
@@ -304,6 +333,8 @@ class DrawingApp(QMainWindow):
 
     def change_pen_size(self, size):
         """Update pen size and cursor"""
+        # Store size in current tool's settings
+        self.state.update_tool_setting(self.current_tool, "size", size)
         self.graphics_view.pen_size = size
         if self.current_tool in ["Eraser", "Pencil"]:
             getattr(self.graphics_view, f"update_{self.current_tool.lower()}_cursor")()
@@ -369,7 +400,15 @@ class DrawingApp(QMainWindow):
 
     def update_window_title(self):
         """Update window title with filename and save status"""
-        title = f"Drawing Tool - {self.current_filename}"
-        if self.has_unsaved_changes:
+        title = f"Drawing Tool - {self.state.current_filename}"
+        if self.state.has_unsaved_changes:
+            title += " *"
+        self.setWindowTitle(title)
+
+
+    def update_window_title(self):
+        """Update window title with filename and save status"""
+        title = f"Drawing Tool - {self.state.current_filename}"
+        if self.state.has_unsaved_changes:
             title += " *"
         self.setWindowTitle(title)
