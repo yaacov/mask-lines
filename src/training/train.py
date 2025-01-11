@@ -91,7 +91,7 @@ def main():
         if not os.path.exists(model_save_path):
             raise ValueError(f"Resume model path not found: {model_save_path}")
         print(f"Loading model from {model_save_path}")
-        model.load_state_dict(torch.load(model_save_path))
+        model.load_state_dict(torch.load(model_save_path, weights_only=True))
 
     model = model.to(device)
 

@@ -2,12 +2,13 @@
 
 ENV_NAME = deeper_unet_env
 
-.PHONY: help install create_env activate_env train test inference clean format lint gui
+.PHONY: help install create_env activate_env train trainresume test inference clean format lint gui
 
 help:
 	@echo "Available make targets:"
 	@echo "  install        Install Python dependencies via pip (from requirements.txt)"
 	@echo "  train          Run the training script (src/training/train.py)"
+	@echo "  trainresume    Run the training script with resume (src/training/train.py)"
 	@echo "  test           Run unit tests with pytest (tests/ directory)"
 	@echo "  inference      Run the inference script (src/training/inference.py)"
 	@echo "  format         Format Python code in src/ and tests/ using Black"
@@ -20,6 +21,9 @@ install:
 
 train:
 	PYTHONPATH=. python src/training/train.py --config src/config/config.yaml
+
+trainresume:
+	PYTHONPATH=. python src/training/train.py --config src/config/config.yaml --resume
 
 test:
 	PYTHONPATH=. pytest tests/

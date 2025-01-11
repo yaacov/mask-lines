@@ -90,7 +90,7 @@ def main():
     model.eval()
 
     # Create output subdirectories
-    for subdir in ["inputs", "target", "overlay"]:
+    for subdir in ["inputs", "targets", "overlay"]:
         os.makedirs(os.path.join(args.output, subdir), exist_ok=True)
 
     # Check if input is a single file or directory
@@ -105,7 +105,7 @@ def main():
             img_path = os.path.join(args.input, fname)
             out_paths = {
                 "input": os.path.join(args.output, "inputs", fname),
-                "target": os.path.join(args.output, "target", fname),
+                "targets": os.path.join(args.output, "targets", fname),
                 "overlay": os.path.join(args.output, "overlay", fname),
             }
             infer_and_save(
@@ -115,7 +115,7 @@ def main():
         fname = os.path.basename(args.input)
         out_paths = {
             "input": os.path.join(args.output, "inputs", fname),
-            "target": os.path.join(args.output, "target", fname),
+            "targets": os.path.join(args.output, "targets", fname),
             "overlay": os.path.join(args.output, "overlay", fname),
         }
         infer_and_save(args.input, out_paths, model, device, args.patch_size, args.step)
@@ -164,9 +164,9 @@ def infer_and_save(img_path, out_paths, model, device, patch_size, step):
     )
     out_img = np.clip(out_img, 0, 1)
 
-    # Save target image
+    # Save targets image
     target_img = (out_img * 255).astype(np.uint8)
-    io.imsave(out_paths["target"], target_img)
+    io.imsave(out_paths["targets"], target_img)
 
     # Create and save overlay
     overlay_img = create_overlay(img, out_img)

@@ -109,6 +109,7 @@ class DrawingApp(QMainWindow):
         self.ui.redo_action.triggered.connect(self.redo)
         self.ui.smooth_action.triggered.connect(self.smooth_image)
         self.ui.thin_action.triggered.connect(self.thin_image)
+        self.ui.smooth_thin_smooth_action.triggered.connect(self.smooth_thin_smooth_image)  # Add this line
         
         # Style actions
         self.ui.color_button.clicked.connect(self.choose_color)
@@ -329,6 +330,13 @@ class DrawingApp(QMainWindow):
         if self.image:
             self.save_undo_state()
             self.image = ImageProcessor.thin_image(self.image, self.graphics_view.pen_color)
+            self.update_scene()
+
+    def smooth_thin_smooth_image(self):
+        """Apply smooth-thin-smooth filter to the current image"""
+        if self.image:
+            self.save_undo_state()
+            self.image = ImageProcessor.smooth_thin_smooth_image(self.image, self.graphics_view.pen_color)
             self.update_scene()
 
     # ---- Style Operations ----

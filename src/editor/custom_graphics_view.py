@@ -262,9 +262,32 @@ class CustomGraphicsView(QGraphicsView):
     def wheelEvent(self, event):
         """Handle mouse wheel for zooming"""
         if event.modifiers() == Qt.ControlModifier:
-            # Zoom factor based on wheel delta
-            factor = 1.1 if event.angleDelta().y() > 0 else 1/1.1
-            self.scale_view(factor)
+            # Get the position before scaling to use as anchor point
+            anchor_pos = self.mapToScene(event.pos())
+
+            # Calculate zoom factor based on wheel delta
+            delta = event.angleDelta().y()
+            factor = 1.1 if delta > 0 else 1/1.1
+            
+            # Check if the new zoom would be within bounds
+            new_zoom = self.zoom_factor * factor
+            if self.min_zoom <= new_zoom <= self.max_zoom:
+                self.zoom_factor = new_zoom
+                # Apply the transform
+                transform = QTransform()
+                transform.scale(self.zoom_factor, self.zoom_factor)
+                self.setTransform(transform)
+                
+                # Adjust the view to maintain the point under cursor
+                new_pos = self.mapFromScene(anchor_pos)
+                delta = new_pos - event.pos()
+                self.horizontalScrollBar().setValue(self.horizontalScrollBar().value() + delta.x())
+                self.verticalScrollBar().setValue(self.verticalScrollBar().value() + delta.y())
+                
+                # Update zoom display
+                self.update_zoom_label()
+            
             event.accept()
         else:
+            # Handle normal scrolling
             super().wheelEvent(event)

@@ -93,3 +93,21 @@ class ImageProcessor:
             bw_array.shape[1] * 3,
             QImage.Format_RGB888,
         )
+
+    @staticmethod
+    def smooth_thin_smooth_image(image, pen_color):
+        """Apply smooth-thin-smooth filter to the image"""
+        if not image:
+            return None
+
+        # First smoothing
+        image = ImageProcessor.smooth_image(image, pen_color)
+        
+        # Thinning
+        image = ImageProcessor.thin_image(image, pen_color)
+        
+        # Four more smoothing passes
+        for _ in range(4):
+            image = ImageProcessor.smooth_image(image, pen_color)
+            
+        return image

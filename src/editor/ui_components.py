@@ -24,6 +24,7 @@ class UIComponents:
         self.save_action.setToolTip("Save (Ctrl+S)")
         self.smooth_action = QAction("Smooth", self.main_window)
         self.thin_action = QAction("Thin", self.main_window)
+        self.smooth_thin_smooth_action = QAction("Smooth-Thin-Smooth", self.main_window)
         self.pencil_action = QAction("Pencil", self.main_window)
         self.eraser_action = QAction("Eraser", self.main_window)
         self.line_action = QAction("Line", self.main_window)
@@ -55,6 +56,7 @@ class UIComponents:
         self.toolbar.addSeparator()
         self.toolbar.addAction(self.smooth_action)
         self.toolbar.addAction(self.thin_action)
+        self.toolbar.addAction(self.smooth_thin_smooth_action)
         self.toolbar.addSeparator()
 
         # Add size controls
