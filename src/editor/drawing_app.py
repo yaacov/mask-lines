@@ -225,6 +225,21 @@ class DrawingApp(QMainWindow):
                 self.has_unsaved_changes = False
                 self.update_window_title()
 
+                # Update the image view with yellow pixels
+                array = ImageUtils.qimage_to_numpy(self.image)
+                height, width = array.shape[:2]
+                rgba = np.zeros((height, width, 4), dtype=np.uint8)
+                
+                # Set yellow color (255, 255, 0) where alpha channel is not 0
+                mask = array[:, :, 3] > 0
+                rgba[mask] = [255, 255, 0, 255]
+                
+                # Convert back to QImage and update the view
+                self.image = QImage(
+                    rgba.data, width, height, width * 4, QImage.Format_RGBA8888
+                ).copy()
+                self.update_scene()
+
     def load_background_from_list(self, item):
         """Load background image and corresponding drawing when clicked in sidebar"""
         if not item:
