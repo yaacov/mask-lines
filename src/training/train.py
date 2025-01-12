@@ -6,6 +6,8 @@ import torch
 import torch.optim as optim
 import torch.nn as nn
 from torch.utils.data import DataLoader
+import torch.quantization
+import torch.nn.utils.prune as prune
 
 from src.data.dataset import PatchImageDataset
 from models.ortho_lines_unet import OrthoLinesUNet
@@ -24,6 +26,12 @@ def parse_args():
         action="store_true",
         default=False,
         help="Resume training from saved model specified in config",
+    )
+    parser.add_argument(
+        "--prune",
+        action="store_true",
+        default=False,
+        help="Apply quantization and pruning to the model after training",
     )
     return parser.parse_args()
 
@@ -119,10 +127,31 @@ def main():
         epoch_loss = running_loss / len(train_loader)
         print(f"Epoch [{epoch+1}/{epochs}], Loss: {epoch_loss:.4f}")
 
-    # Save model
-    os.makedirs(os.path.dirname(model_save_path), exist_ok=True)
-    torch.save(model.state_dict(), model_save_path)
-    print(f"Model saved to {model_save_path}")
+    if args.prune:
+        print("Applying quantization and pruning...")
+        # Quantize model
+        model.cpu()  # Quantization requires CPU
+        quantized_model = torch.quantization.quantize_dynamic(
+            model,
+            {torch.nn.Linear, torch.nn.Conv2d},  # Specify layers to quantize
+            dtype=torch.qint8
+        )
+
+        # Prune model (example: prune 20% of weights in Conv2d layers)
+        for name, module in quantized_model.named_modules():
+            if isinstance(module, torch.nn.Conv2d):
+                prune.l1_unstructured(module, name='weight', amount=0.2)
+                prune.remove(module, 'weight')  # Make pruning permanent
+
+        # Save quantized and pruned model
+        os.makedirs(os.path.dirname(model_save_path), exist_ok=True)
+        torch.save(quantized_model.state_dict(), model_save_path)
+        print(f"Quantized and pruned model saved to {model_save_path}")
+    else:
+        # Save original model
+        os.makedirs(os.path.dirname(model_save_path), exist_ok=True)
+        torch.save(model.state_dict(), model_save_path)
+        print(f"Model saved to {model_save_path}")
 
 
 if __name__ == "__main__":

@@ -22,7 +22,7 @@ train:
 	PYTHONPATH=. python src/training/train.py --config src/config/config.yaml
 
 trainresume:
-	PYTHONPATH=. python src/training/train.py --config src/config/config.yaml --resume
+	PYTHONPATH=. python src/training/train.py --config src/config/config.yaml --resume --prune
 
 test:
 	PYTHONPATH=. pytest tests/
