@@ -1,3 +1,5 @@
+[![Hugging Face Model](https://img.shields.io/badge/HuggingFace-ortho--lines-blue)](https://huggingface.co/yzamir/ortho-lines)
+
 # ORTHO line catcher Project
 
 ## Project Overview
