@@ -8,6 +8,9 @@ model to perform line tracing tasks on large text images by splitting them into
 smaller patches. The approach allows for higher-capacity models to handle 
 arbitrarily large text images without running out of memory.
 
+## About ORTHO
+[ORTHO (Old Research Text Hebrew OCR)](https://github.com/yaacov/ortho) is a project focused on optical character recognition for historical Hebrew texts. The project uses a U-Net architecture for text segmentation and recognition.
+
 ## Installation
 1. (Recommended) Create a new Python virtual environment or conda environment
 2. Install dependencies:
